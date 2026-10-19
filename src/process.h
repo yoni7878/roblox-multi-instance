@@ -2,4 +2,4 @@
 #include <Windows.h>
 #include <TlHelp32.h>
 
-DWORD GetRobloxPID();
+unsigned int GetRobloxPID(DWORD* arr, unsigned int max_cnt);
