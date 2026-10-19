@@ -33,7 +33,7 @@ void blue() {
 }
 
 int wmain(int argc, wchar_t* argv[]) {
-	BOOL dbg = TRUE;
+	BOOL dbg = FALSE;
 	if (argc > 1) {
 		if (wcscmp(argv[1], L"--debug") == 0) {
 			dbg = TRUE;
