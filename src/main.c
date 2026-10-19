@@ -41,7 +41,7 @@ int wmain(int argc, wchar_t* argv[]) {
 	}
 	pfnNtQuerySystemInformation ntsystem = NULL;
 	pfnNtQueryObject ntobject = NULL;
-	DWORD ProcessId = 0;
+
 	wprintf(L"[roblox multi instance].\n");
 
 	if (!ResolveFunctions(&ntsystem, &ntobject)) {
@@ -55,40 +55,25 @@ int wmain(int argc, wchar_t* argv[]) {
 	green();
 	wprintf(L"[+] successfully resolved nt functions.\n");
 
-	ProcessId = GetRobloxPID();
-	if (ProcessId == 0) {
-		red();
-		wprintf(L"[-] failed to find roblox process, try opening it.\n");
-
-		wprintf(L"\n[+] press any key to leave...\n");
-		getwchar();
-		return 2;
-	}
-
-	green();
-	wprintf(L"[+] found roblox process.\n");
-
-	HANDLE hProcess = OpenProcess(
-		PROCESS_DUP_HANDLE,
-		FALSE,
-		ProcessId
+	DWORD proc[100];
+	UINT count = GetRobloxPID(
+		proc,
+		100
 	);
-	if (!hProcess) {
-		red();
-		wprintf(L"[-] failed to attach to roblox process at pid: %lu.\n", ProcessId);
 
-		wprintf(L"\n[+] press any key to leave...\n");
-		getwchar();
-		return 3;
+	if (count == 0) {
+		red();
+		wprintf(L"[-] failed to find any roblox processes.\n");
+		return 6;
 	}
+
 	green();
-	wprintf(L"[+] attached to roblox process safely.\n");
+	wprintf(L"[+] found %u roblox processes.\n", count);
 
 	void* buffer = NULL;
 	ULONG buffer_size = 0;
 	
 	if (!GetSystemHandleInformation(ntsystem, &buffer, &buffer_size)) {
-		CloseHandle(hProcess);
 		red();
 		wprintf(L"[-] failed to get system handle information, code: %lu,\n", GetLastError());
 
@@ -100,37 +85,45 @@ int wmain(int argc, wchar_t* argv[]) {
 	wprintf(L"[+] found system handle information.\n");
 
 	PSYSTEM_HANDLE_INFORMATION info = (PSYSTEM_HANDLE_INFORMATION)buffer;
-	BOOL closed = FALSE;
+	int total = 0;
 
-	for (ULONG i = 0; i < info->NumberOfHandles; i++) {
-		SYSTEM_HANDLE_TABLE_ENTRY_INFO* entry = &(info->Handles[i]);
-		blue();
-		if (PatchHandle(hProcess, ProcessId, entry, ntobject, dbg)) {
-			closed = TRUE;
-			break;
+	for (int c = 0; c < count; c++) {
+		DWORD current = proc[c];
+
+		HANDLE hProcess = OpenProcess(
+			PROCESS_DUP_HANDLE,
+			FALSE,
+			current
+		);
+		if (!hProcess) {
+			red();
+			wprintf(L"[-] failed to attach to roblox process id: %lu.\n", current);
+			blue();
+			continue;
 		}
+
+		for (ULONG i = 0; i < info->NumberOfHandles; i++) {
+			SYSTEM_HANDLE_TABLE_ENTRY_INFO* entry = &(info->Handles[i]);
+			blue();
+			if (PatchHandle(hProcess, current, entry, ntobject, dbg)) {
+				total++;
+			}
+		}
+		CloseHandle(hProcess);
 	}
 
-	if (!closed) {
+	if (total == 0) {
 		red();
-		wprintf(L"[-] couldn't close handle.\n");
-		free(buffer);
-		CloseHandle(hProcess);
-
-		wprintf(L"\n[+] press any key to leave...\n");
-		getwchar();
-
-		return 5;
+		wprintf(L"[-] failed to patch any roblox processes. make sure you didn't already run!\n");
+		return 10;
 	}
 
 	green();
-	wprintf(L"[+] successful. try opening another roblox process.\n");
+	wprintf(L"[+] successfully patched %d processes.\n", total);
 
 	wprintf(L"\n[+] press any key to leave...\n");
 	getwchar();
 
 	free(buffer);
-	CloseHandle(hProcess);
-
 	return 0;
 }
