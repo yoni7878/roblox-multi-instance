@@ -27,7 +27,7 @@ cl.exe /O2 /Fe:roblox-multi-instance.exe main.c
 
 ## 💻 usage 
 
-run the compiled executable from an **administrator** command prompt or powershell window (elevated privileges are required to duplicate and close handles belonging to other processes)
+run the compiled executable from an **user** command prompt or powershell window, the utility does not need admin permissions.
 
 roblox-multi-instance.exe
 
