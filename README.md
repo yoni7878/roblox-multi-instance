@@ -47,11 +47,10 @@ roblox-multi-instance.exe --debug
 
 #### Example Output:
 ```text
-[DEBUG] Scanning system handles...
-[DEBUG] Handle [0x04]: \Device\NamedPipe\srvsvc
-[DEBUG] Handle [0x08]: \BaseNamedObjects\Local\ZoneTypeCacheCounterMutex
-[DEBUG] Handle [0x0C]: \BaseNamedObjects\RobloxSingletonMutex
-[+] Target found! Closing handle 0x0C via DUPLICATE_CLOSE_SOURCE...
+[+] handle name: \Device\NamedPipe\srvsvc
+[+] handle name: \BaseNamedObjects\Local\ZoneTypeCacheCounterMutex
+[+] handle name: \BaseNamedObjects\RobloxSingletonMutex
+[+] handle name: ROBLOX_singletonEvent.
 [+] successful. try opening another process.
 ```
 
